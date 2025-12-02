@@ -1,55 +1,24 @@
 package Exercicio7.service;
 
-import Exercicio7.domain.Adocao;
-import Exercicio7.domain.StatusAdocao;
-import Exercicio7.domain.events.AdocaoCriadaEvent;
-import Exercicio7.domain.events.EventPublisher;
+import Exercicio7.domain.AdocaoRegistradaEvent;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class AdocaoService {
-    private final List<Adocao> adocoes = new ArrayList<>();
+    private final List<AdocaoRegistradaEvent> eventosPublicados = new ArrayList<>();
 
-    public Adocao criarAdocao(UUID petId, String nomePet, UUID tutorId, String nomeTutor) {
-        Adocao adocao = new Adocao(UUID.randomUUID(), petId, nomePet, tutorId, nomeTutor);
-        adocoes.add(adocao);
+    public void registrarAdocao(String nomePet, String nomeTutor) {
+        System.out.println("Processando adoção do pet '" + nomePet + "' para " + nomeTutor + "...");
 
-        System.out.println("Adoção registrada: " + adocao.getId());
+        AdocaoRegistradaEvent evento = new AdocaoRegistradaEvent(nomePet, nomeTutor);
+        publicarEvento(evento);
 
-        AdocaoCriadaEvent evento = new AdocaoCriadaEvent(
-            adocao.getId(),
-            adocao.getPetId(),
-            adocao.getNomePet(),
-            adocao.getTutorId(),
-            adocao.getNomeTutor()
-        );
-
-        EventPublisher.publish(evento);
-
-        return adocao;
+        System.out.println("Adoção registrada com sucesso!");
     }
 
-    public void aprovarAdocao(UUID adocaoId) {
-        Adocao adocao = buscarAdocao(adocaoId);
-        if (adocao == null) {
-            throw new IllegalArgumentException("Adoção não encontrada");
-        }
-
-        adocao.setStatus(StatusAdocao.APROVADA);
-        System.out.println("Adoção aprovada: " + adocaoId);
-    }
-
-    public Adocao buscarAdocao(UUID adocaoId) {
-        return adocoes.stream()
-            .filter(a -> a.getId().equals(adocaoId))
-            .findFirst()
-            .orElse(null);
-    }
-
-    public List<Adocao> listarAdocoes() {
-        return new ArrayList<>(adocoes);
+    private void publicarEvento(AdocaoRegistradaEvent evento) {
+        eventosPublicados.add(evento);
+        System.out.println("[Evento publicado] " + evento);
     }
 }
-
